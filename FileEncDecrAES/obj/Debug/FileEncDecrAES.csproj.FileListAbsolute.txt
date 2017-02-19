@@ -1,0 +1,6 @@
+c:\users\stas\documents\visual studio 2015\Projects\FileEncDecrAES\FileEncDecrAES\bin\Debug\FileEncDecrAES.exe.config
+c:\users\stas\documents\visual studio 2015\Projects\FileEncDecrAES\FileEncDecrAES\bin\Debug\FileEncDecrAES.exe
+c:\users\stas\documents\visual studio 2015\Projects\FileEncDecrAES\FileEncDecrAES\bin\Debug\FileEncDecrAES.pdb
+c:\users\stas\documents\visual studio 2015\Projects\FileEncDecrAES\FileEncDecrAES\obj\Debug\FileEncDecrAES.csprojResolveAssemblyReference.cache
+c:\users\stas\documents\visual studio 2015\Projects\FileEncDecrAES\FileEncDecrAES\obj\Debug\FileEncDecrAES.exe
+c:\users\stas\documents\visual studio 2015\Projects\FileEncDecrAES\FileEncDecrAES\obj\Debug\FileEncDecrAES.pdb
