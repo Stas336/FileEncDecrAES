@@ -9,7 +9,7 @@ namespace FileEncDecrAES
     {
         static void Main(string[] args)
         {
-            string fileName, password;
+            string fileName, password, delete = "";
             int userChoise;
             while (true)
             {
@@ -26,7 +26,13 @@ namespace FileEncDecrAES
                         fileName = Console.ReadLine();
                         Console.WriteLine("Enter password for the encryption");
                         password = Console.ReadLine();
-                        aesEncrypt(fileName, password);
+                        while (!delete.Equals("y") && !delete.Equals("n"))
+                        {
+                            Console.WriteLine("Delete original file? y/n");
+                            delete = Console.ReadLine();
+                        }
+                        aesEncrypt(fileName, password, delete.Equals("y"));
+                        delete = "";
                         break;
                     case 2:
                         Console.Clear();
@@ -46,17 +52,16 @@ namespace FileEncDecrAES
                 }
             }
         }
-        private static void aesEncrypt(string inputFile, string password)
+        private static void aesEncrypt(string inputFile, string password, bool deleteOriginal)
         {
             byte[] salt = generateRandomSalt();
             FileStream fsCrypt = new FileStream(inputFile + ".encrypted", FileMode.Create);
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
             RijndaelManaged AES = new RijndaelManaged();
             AES.KeySize = 256;
             AES.BlockSize = 128;
             AES.Padding = PaddingMode.PKCS7;
 
-            var key = new Rfc2898DeriveBytes(passwordBytes, salt, 50000);
+            var key = new Rfc2898DeriveBytes(password, salt, 50000);
             AES.Key = key.GetBytes(AES.KeySize / 8);
             AES.IV = key.GetBytes(AES.BlockSize / 8);
 
@@ -84,6 +89,7 @@ namespace FileEncDecrAES
             catch (Exception ex)
             {
                 Console.WriteLine("Error: " + ex.Message);
+                return;
             }
             finally
             {
@@ -91,10 +97,13 @@ namespace FileEncDecrAES
                 fsCrypt.Close();
                 AES.Clear();
             }
+            if (deleteOriginal)
+            {
+                File.Delete(inputFile);
+            }
         }
         private static void aesDecrypt(string inputFile, string password)
         {
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
             byte[] salt = new byte[32];
 
             FileStream fsCrypt = new FileStream(inputFile, FileMode.Open);
@@ -103,16 +112,15 @@ namespace FileEncDecrAES
             RijndaelManaged AES = new RijndaelManaged();
             AES.KeySize = 256;
             AES.BlockSize = 128;
-            var key = new Rfc2898DeriveBytes(passwordBytes, salt, 50000);
+            var key = new Rfc2898DeriveBytes(password, salt, 50000);
             AES.Key = key.GetBytes(AES.KeySize / 8);
             AES.IV = key.GetBytes(AES.BlockSize / 8);
             AES.Padding = PaddingMode.PKCS7;
             AES.Mode = CipherMode.CFB;
 
             CryptoStream cs = new CryptoStream(fsCrypt, AES.CreateDecryptor(), CryptoStreamMode.Read);
-
-            FileStream fsOut = new FileStream(inputFile + ".decrypted", FileMode.Create);
-
+            string newFile = inputFile.Remove(inputFile.LastIndexOf("."), inputFile.Length - inputFile.LastIndexOf("."));
+            FileStream fsOut = new FileStream(newFile, FileMode.Create);
             int read;
             byte[] buffer = new byte[1048576];
 
@@ -122,10 +130,6 @@ namespace FileEncDecrAES
                 {
                     fsOut.Write(buffer, 0, read);
                 }
-            }
-            catch (CryptographicException ex_CryptographicException)
-            {
-                Console.WriteLine("CryptographicException error: " + ex_CryptographicException.Message);
             }
             catch (Exception ex)
             {
@@ -138,7 +142,10 @@ namespace FileEncDecrAES
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error by closing CryptoStream: " + ex.Message);
+                Console.WriteLine("Error: " + ex.Message);
+                fsOut.Close();
+                File.Delete(newFile);
+                return;
             }
             finally
             {
@@ -146,6 +153,7 @@ namespace FileEncDecrAES
                 fsCrypt.Close();
                 AES.Clear();
             }
+            File.Delete(inputFile);
         }
         private static byte[] generateRandomSalt()
         {
